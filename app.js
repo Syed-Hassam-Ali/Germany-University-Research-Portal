@@ -22,22 +22,85 @@
   let editingId = null;
   let sortCol = null;
   let sortAsc = true;
+  let serverAvailable = false;
+  const API_BASE = window.location.protocol === 'file:' ? null : (window.location.origin + '/api/data');
 
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
   // ── Persistence ──
-  function saveAll() {
+  function saveToLocalStorage() {
     try {
       localStorage.setItem(STORAGE_COURSES, JSON.stringify(courses));
       localStorage.setItem(STORAGE_CITIES, JSON.stringify(cities));
       localStorage.setItem(STORAGE_UNIS, JSON.stringify(universities));
     } catch {}
-    $('#last-saved').textContent = 'Last saved: ' + new Date().toLocaleTimeString();
   }
 
-  function loadAll() {
+  function saveAll() {
+    saveToLocalStorage();
+    const now = new Date().toLocaleTimeString();
+
+    if (serverAvailable && API_BASE) {
+      fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cities, universities, courses })
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res.ok) {
+            $('#last-saved').textContent = 'Saved to file + browser: ' + now;
+            updateStorageBadge(true);
+          }
+        })
+        .catch(() => {
+          $('#last-saved').textContent = 'Saved to browser only: ' + now;
+          updateStorageBadge(false);
+        });
+    } else {
+      $('#last-saved').textContent = 'Saved to browser: ' + now;
+    }
+  }
+
+  function updateStorageBadge(fileMode) {
+    const badge = $('#storage-badge');
+    if (fileMode) {
+      badge.textContent = 'File storage (Git-ready)';
+      badge.className = 'storage-badge file-mode';
+    } else {
+      badge.textContent = 'Browser storage only';
+      badge.className = 'storage-badge local-mode';
+    }
+  }
+
+  async function loadAll() {
+    // Try server first
+    if (API_BASE) {
+      try {
+        const res = await fetch(API_BASE);
+        if (res.ok) {
+          const payload = await res.json();
+          serverAvailable = true;
+          courses = Array.isArray(payload.courses) ? payload.courses : [];
+          cities = Array.isArray(payload.cities) ? payload.cities : [];
+          universities = Array.isArray(payload.universities) ? payload.universities : [];
+          saveToLocalStorage();
+          updateStorageBadge(true);
+          if (cities.length === 0) {
+            cities = DEFAULT_CITIES.map(name => ({ id: uid(), name }));
+            saveAll();
+          }
+          return;
+        }
+      } catch {}
+    }
+
+    // Fallback to localStorage
+    serverAvailable = false;
+    updateStorageBadge(false);
+
     try {
       const rc = localStorage.getItem(STORAGE_COURSES);
       courses = (rc && Array.isArray(JSON.parse(rc))) ? JSON.parse(rc) : [];
@@ -55,7 +118,7 @@
 
     if (cities.length === 0) {
       cities = DEFAULT_CITIES.map(name => ({ id: uid(), name }));
-      try { localStorage.setItem(STORAGE_CITIES, JSON.stringify(cities)); } catch {}
+      saveToLocalStorage();
     }
   }
 
@@ -142,6 +205,7 @@
     $('#form-city').value = name;
     $('#form-city').dispatchEvent(new Event('change'));
     $('#city-add-row').classList.add('hidden-input');
+    renderCityList();
   }
 
   function deleteCity(name) {
@@ -178,6 +242,7 @@
     $('#new-uni-name').value = '';
     $('#form-university').value = name;
     $('#uni-add-row').classList.add('hidden-input');
+    renderUniList();
   }
 
   function deleteUniversity(uniName, cityName) {
@@ -715,8 +780,8 @@
   }
 
   // ── Init ──
-  function init() {
-    loadAll();
+  async function init() {
+    await loadAll();
     initTabs();
     refreshFormCityDropdown();
     refreshFormUniDropdown();
@@ -807,8 +872,8 @@
       renderTable();
     });
 
-    if (courses.length > 0) {
-      $('#last-saved').textContent = 'Data loaded from browser storage';
+    if (courses.length > 0 || cities.length > 0) {
+      $('#last-saved').textContent = serverAvailable ? 'Data loaded from file' : 'Data loaded from browser storage';
     }
   }
 

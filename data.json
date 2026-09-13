@@ -1,0 +1,52 @@
+{
+  "cities": [
+    {
+      "id": "259d264e-591f-4378-8373-9b86c99e08b6",
+      "name": "Munich (München)"
+    },
+    {
+      "id": "ca8cb5ea-42a9-4009-8482-b444c3e7baab",
+      "name": "Berlin"
+    },
+    {
+      "id": "8e663cd9-7e82-4a19-b485-59430e89259d",
+      "name": "Hamburg"
+    },
+    {
+      "id": "a9751616-1392-4e33-ab4e-3d68aa99be26",
+      "name": "Frankfurt am Main"
+    },
+    {
+      "id": "46d1cf43-d14e-48ba-b003-988826175db5",
+      "name": "Stuttgart"
+    },
+    {
+      "id": "978a4b95-037a-44a2-832e-ae8716243ae8",
+      "name": "Düsseldorf"
+    },
+    {
+      "id": "f3573554-00dc-4884-870a-9fa9fcfcca6a",
+      "name": "Cologne (Köln)"
+    },
+    {
+      "id": "4ed540d7-f9ed-4376-8ed3-77cb5e23e360",
+      "name": "Karlsruhe"
+    },
+    {
+      "id": "dc228e59-fa72-492c-a8a1-2845e1bafa5f",
+      "name": "Nuremberg (Nürnberg)"
+    },
+    {
+      "id": "2d6bbfd9-b116-4bba-a70e-efcaa413aced",
+      "name": "Dresden"
+    }
+  ],
+  "universities": [
+    {
+      "id": "0e09af8e-2e1a-4763-a68f-1df9e8e8d58a",
+      "name": "TU Berlin",
+      "city": "Berlin"
+    }
+  ],
+  "courses": []
+}

@@ -38,7 +38,17 @@ body {
   gap: 12px;
 }
 .header h1 { font-size: 1.4rem; font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 12px; }
 .header-meta { font-size: .8rem; opacity: .85; }
+
+.storage-badge {
+  font-size: .75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+.storage-badge.file-mode { background: #bbf7d0; color: #166534; }
+.storage-badge.local-mode { background: rgba(255,255,255,.2); color: #fff; }
 
 /* ── Tabs ── */
 .tabs {
