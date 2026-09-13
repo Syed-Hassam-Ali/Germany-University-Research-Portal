@@ -30,28 +30,57 @@
       <input type="file" id="file-json" class="hidden-input" accept=".json">
     </div>
 
-    <div class="form-card">
-      <h2 id="form-title">Add New Course</h2>
+    <!-- ── Step 1: City ── -->
+    <div class="form-card entity-card">
+      <div class="entity-header">
+        <h2>1. City</h2>
+        <button type="button" id="btn-show-add-city" class="btn-add-entity">+ Add New City</button>
+      </div>
+
+      <div class="form-group">
+        <label>Select City</label>
+        <select id="form-city"><option value="">-- Select City --</option></select>
+      </div>
+
+      <div id="city-add-row" class="inline-add-row hidden-input">
+        <input type="text" id="new-city-name" placeholder="Enter new city name">
+        <button type="button" id="btn-save-city" class="btn btn-primary btn-sm">Save City</button>
+      </div>
+
+      <div class="entity-list-wrap">
+        <div class="entity-list-label">Saved cities (click to select):</div>
+        <div id="city-list" class="entity-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Step 2: University ── -->
+    <div class="form-card entity-card">
+      <div class="entity-header">
+        <h2>2. University</h2>
+        <button type="button" id="btn-show-add-uni" class="btn-add-entity">+ Add New University</button>
+      </div>
+
+      <div class="form-group">
+        <label>Select University</label>
+        <select id="form-university"><option value="">-- Select University --</option></select>
+      </div>
+
+      <div id="uni-add-row" class="inline-add-row hidden-input">
+        <input type="text" id="new-uni-name" placeholder="Enter new university name">
+        <button type="button" id="btn-save-uni" class="btn btn-primary btn-sm">Save University</button>
+      </div>
+
+      <div class="entity-list-wrap">
+        <div class="entity-list-label">Universities in selected city (click to select):</div>
+        <div id="uni-list" class="entity-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Course details ── -->
+    <div class="form-card course-form-card">
+      <h2 id="course-form-title">3. Course Details</h2>
       <form id="course-form" onsubmit="return false">
         <div class="form-grid">
-
-          <!-- City -->
-          <div class="form-group">
-            <label>City *</label>
-            <select id="form-city"><option value="">-- Select or Add New --</option></select>
-            <div id="new-city-input" class="hidden-input" style="margin-top:6px">
-              <input type="text" id="new-city-input-text" placeholder="Enter new city name">
-            </div>
-          </div>
-
-          <!-- University -->
-          <div class="form-group">
-            <label>University *</label>
-            <select id="form-university"><option value="">-- Select or Add New --</option></select>
-            <div id="new-uni-input" class="hidden-input" style="margin-top:6px">
-              <input type="text" id="new-uni-input-text" placeholder="Enter new university name">
-            </div>
-          </div>
 
           <!-- Course -->
           <div class="form-group full">
@@ -154,10 +183,10 @@
   <div id="tab-view" class="tab-content">
 
     <div class="toolbar">
-      <button id="btn-export-xlsx-2" onclick="document.getElementById('btn-export-xlsx').click()">Export Excel</button>
-      <button id="btn-import-xlsx-2" onclick="document.getElementById('btn-import-xlsx').click()">Import Excel</button>
-      <button id="btn-export-json-2" onclick="document.getElementById('btn-export-json').click()">Export JSON</button>
-      <button id="btn-import-json-2" onclick="document.getElementById('btn-import-json').click()">Import JSON</button>
+      <button onclick="document.getElementById('btn-export-xlsx').click()">Export Excel</button>
+      <button onclick="document.getElementById('btn-import-xlsx').click()">Import Excel</button>
+      <button onclick="document.getElementById('btn-export-json').click()">Export JSON</button>
+      <button onclick="document.getElementById('btn-import-json').click()">Import JSON</button>
     </div>
 
     <!-- Filters -->

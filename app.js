@@ -1,74 +1,109 @@
 (() => {
-  const STORAGE_KEY = 'uni_portal_data';
+  const STORAGE_COURSES = 'uni_portal_data';
+  const STORAGE_CITIES = 'uni_portal_cities';
+  const STORAGE_UNIS = 'uni_portal_universities';
 
-  let data = [];
+  const DEFAULT_CITIES = [
+    'Munich (München)',
+    'Berlin',
+    'Hamburg',
+    'Frankfurt am Main',
+    'Stuttgart',
+    'Düsseldorf',
+    'Cologne (Köln)',
+    'Karlsruhe',
+    'Nuremberg (Nürnberg)',
+    'Dresden'
+  ];
+
+  let courses = [];
+  let cities = [];
+  let universities = [];
   let editingId = null;
   let sortCol = null;
   let sortAsc = true;
 
-  // ── Helpers ──
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+  // ── Persistence ──
+  function saveAll() {
+    try {
+      localStorage.setItem(STORAGE_COURSES, JSON.stringify(courses));
+      localStorage.setItem(STORAGE_CITIES, JSON.stringify(cities));
+      localStorage.setItem(STORAGE_UNIS, JSON.stringify(universities));
+    } catch {}
     $('#last-saved').textContent = 'Last saved: ' + new Date().toLocaleTimeString();
   }
 
-  function load() {
+  function loadAll() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) { data = parsed; return; }
-      }
-    } catch {}
-    data = [];
+      const rc = localStorage.getItem(STORAGE_COURSES);
+      courses = (rc && Array.isArray(JSON.parse(rc))) ? JSON.parse(rc) : [];
+    } catch { courses = []; }
+
+    try {
+      const rci = localStorage.getItem(STORAGE_CITIES);
+      cities = (rci && Array.isArray(JSON.parse(rci))) ? JSON.parse(rci) : [];
+    } catch { cities = []; }
+
+    try {
+      const ru = localStorage.getItem(STORAGE_UNIS);
+      universities = (ru && Array.isArray(JSON.parse(ru))) ? JSON.parse(ru) : [];
+    } catch { universities = []; }
+
+    if (cities.length === 0) {
+      cities = DEFAULT_CITIES.map(name => ({ id: uid(), name }));
+      try { localStorage.setItem(STORAGE_CITIES, JSON.stringify(cities)); } catch {}
+    }
   }
 
-  // ── Unique sorted values ──
-  function uniqueVals(key) {
-    return [...new Set(data.map(d => d[key]).filter(Boolean))].sort();
+  // ── Derived lists ──
+  function allCityNames() {
+    const fromCities = cities.map(c => c.name);
+    const fromCourses = courses.map(c => c.city).filter(Boolean);
+    return [...new Set([...fromCities, ...fromCourses])].sort();
   }
 
-  // ── Collect all custom field labels ──
+  function allUnisForCity(cityName) {
+    const fromUnis = universities.filter(u => u.city === cityName).map(u => u.name);
+    const fromCourses = courses.filter(c => c.city === cityName).map(c => c.university).filter(Boolean);
+    return [...new Set([...fromUnis, ...fromCourses])].sort();
+  }
+
+  function allUniNames() {
+    const fromUnis = universities.map(u => u.name);
+    const fromCourses = courses.map(c => c.university).filter(Boolean);
+    return [...new Set([...fromUnis, ...fromCourses])].sort();
+  }
+
   function allCustomLabels() {
     const s = new Set();
-    data.forEach(d => (d.customFields || []).forEach(f => { if (f.label) s.add(f.label); }));
+    courses.forEach(d => (d.customFields || []).forEach(f => { if (f.label) s.add(f.label); }));
     return [...s].sort();
   }
 
   // ── Populate dropdowns ──
-  function populateCityDropdowns() {
-    const cities = uniqueVals('city');
-    populateSelect('#form-city', cities, '-- Select or Add New --');
-    populateSelect('#filter-city', cities, 'All Cities');
+  function refreshFormCityDropdown() {
+    const names = allCityNames();
+    fillSelect('#form-city', names, '-- Select City --');
+    fillSelect('#filter-city', names, 'All Cities');
   }
 
-  function populateUniversityDropdowns(filterCity) {
-    let unis;
-    if (filterCity) {
-      unis = [...new Set(data.filter(d => d.city === filterCity).map(d => d.university).filter(Boolean))].sort();
-    } else {
-      unis = uniqueVals('university');
-    }
-    populateSelect('#form-university', unis, '-- Select or Add New --');
+  function refreshFormUniDropdown(cityName) {
+    const unis = cityName ? allUnisForCity(cityName) : allUniNames();
+    fillSelect('#form-university', unis, '-- Select University --');
   }
 
-  function populateFilterUniversities() {
+  function refreshFilterUniDropdown() {
     const cityFilter = $('#filter-city').value;
-    let unis;
-    if (cityFilter) {
-      unis = [...new Set(data.filter(d => d.city === cityFilter).map(d => d.university).filter(Boolean))].sort();
-    } else {
-      unis = uniqueVals('university');
-    }
-    populateSelect('#filter-university', unis, 'All Universities');
+    const unis = cityFilter ? allUnisForCity(cityFilter) : allUniNames();
+    fillSelect('#filter-university', unis, 'All Universities');
   }
 
-  function populateSelect(sel, items, placeholder) {
-    const el = typeof sel === 'string' ? $(sel) : sel;
+  function fillSelect(sel, items, placeholder) {
+    const el = $(sel);
     const cur = el.value;
     el.innerHTML = `<option value="">${placeholder}</option>`;
     items.forEach(v => {
@@ -76,9 +111,6 @@
       o.value = v; o.textContent = v;
       el.appendChild(o);
     });
-    const addNew = document.createElement('option');
-    addNew.value = '__new__'; addNew.textContent = '+ Add New...';
-    if (!placeholder.startsWith('All')) el.appendChild(addNew);
     if ([...el.options].some(o => o.value === cur)) el.value = cur;
   }
 
@@ -92,6 +124,117 @@
         $(`#${btn.dataset.tab}`).classList.add('active');
         if (btn.dataset.tab === 'tab-view') renderTable();
       });
+    });
+  }
+
+  // ── City & University quick-add ──
+  function saveCity() {
+    const name = $('#new-city-name').value.trim();
+    if (!name) { alert('Please enter a city name.'); return; }
+    if (allCityNames().some(c => c.toLowerCase() === name.toLowerCase())) {
+      alert('This city already exists.');
+      return;
+    }
+    cities.push({ id: uid(), name });
+    saveAll();
+    refreshFormCityDropdown();
+    $('#new-city-name').value = '';
+    $('#form-city').value = name;
+    $('#form-city').dispatchEvent(new Event('change'));
+    $('#city-add-row').classList.add('hidden-input');
+  }
+
+  function deleteCity(name) {
+    const coursesInCity = courses.filter(c => c.city === name).length;
+    const unisInCity = universities.filter(u => u.city === name).length;
+    let msg = `Delete city "${name}"?`;
+    if (coursesInCity > 0 || unisInCity > 0) {
+      msg += `\n\nThis will also remove ${unisInCity} university record(s) and ${coursesInCity} course(s) under this city.`;
+    }
+    if (!confirm(msg)) return;
+    cities = cities.filter(c => c.name !== name);
+    universities = universities.filter(u => u.city !== name);
+    courses = courses.filter(c => c.city !== name);
+    saveAll();
+    refreshFormCityDropdown();
+    refreshFormUniDropdown();
+    renderCityList();
+    renderUniList();
+    renderTable();
+  }
+
+  function saveUniversity() {
+    const cityName = $('#form-city').value;
+    if (!cityName) { alert('Please select a city first.'); return; }
+    const name = $('#new-uni-name').value.trim();
+    if (!name) { alert('Please enter a university name.'); return; }
+    if (allUnisForCity(cityName).some(u => u.toLowerCase() === name.toLowerCase())) {
+      alert('This university already exists under this city.');
+      return;
+    }
+    universities.push({ id: uid(), name, city: cityName });
+    saveAll();
+    refreshFormUniDropdown(cityName);
+    $('#new-uni-name').value = '';
+    $('#form-university').value = name;
+    $('#uni-add-row').classList.add('hidden-input');
+  }
+
+  function deleteUniversity(uniName, cityName) {
+    const coursesInUni = courses.filter(c => c.university === uniName && c.city === cityName).length;
+    let msg = `Delete university "${uniName}"?`;
+    if (coursesInUni > 0) {
+      msg += `\n\nThis will also remove ${coursesInUni} course(s) under this university.`;
+    }
+    if (!confirm(msg)) return;
+    universities = universities.filter(u => !(u.name === uniName && u.city === cityName));
+    courses = courses.filter(c => !(c.university === uniName && c.city === cityName));
+    saveAll();
+    refreshFormUniDropdown($('#form-city').value);
+    renderUniList();
+    renderTable();
+  }
+
+  function renderCityList() {
+    const container = $('#city-list');
+    container.innerHTML = '';
+    const names = allCityNames();
+    if (names.length === 0) { container.innerHTML = '<span class="list-empty">No cities yet</span>'; return; }
+    names.forEach(name => {
+      const uniCount = allUnisForCity(name).length;
+      const courseCount = courses.filter(c => c.city === name).length;
+      const row = document.createElement('div');
+      row.className = 'entity-chip';
+      row.innerHTML = `
+        <span class="chip-name">${escHtml(name)}</span>
+        <span class="chip-count">${uniCount} uni · ${courseCount} course${courseCount !== 1 ? 's' : ''}</span>
+        <button type="button" class="chip-del" title="Delete city">&times;</button>
+      `;
+      row.querySelector('.chip-del').addEventListener('click', (e) => { e.stopPropagation(); deleteCity(name); });
+      row.addEventListener('click', () => { $('#form-city').value = name; $('#form-city').dispatchEvent(new Event('change')); });
+      container.appendChild(row);
+    });
+  }
+
+  function renderUniList() {
+    const container = $('#uni-list');
+    container.innerHTML = '';
+    const cityName = $('#form-city').value;
+    if (!cityName) { container.innerHTML = '<span class="list-empty">Select a city to see universities</span>'; return; }
+    const unis = allUnisForCity(cityName);
+    if (unis.length === 0) { container.innerHTML = '<span class="list-empty">No universities in this city yet</span>'; return; }
+    unis.forEach(name => {
+      const courseCount = courses.filter(c => c.university === name && c.city === cityName).length;
+      const row = document.createElement('div');
+      row.className = 'entity-chip';
+      row.innerHTML = `
+        <span class="chip-name">${escHtml(name)}</span>
+        <span class="chip-count">${courseCount} course${courseCount !== 1 ? 's' : ''}</span>
+        <button type="button" class="chip-del" title="Delete university">&times;</button>
+      `;
+      row.querySelector('.chip-del').addEventListener('click', (e) => { e.stopPropagation(); deleteUniversity(name, cityName); });
+      row.addEventListener('click', () => { $('#form-university').value = name; });
+      container.appendChild(row);
     });
   }
 
@@ -119,20 +262,22 @@
     return fields;
   }
 
-  // ── Form logic ──
+  // ── Course form logic ──
   function resetForm() {
     $('#course-form').reset();
     editingId = null;
-    $('#form-title').textContent = 'Add New Course';
+    $('#course-form-title').textContent = 'Course Details';
     $('#btn-delete-form').style.display = 'none';
     $('#btn-save').textContent = 'Save Course';
     $('#custom-fields-container').innerHTML = '';
-    $('#new-city-input').classList.add('hidden-input');
-    $('#new-uni-input').classList.add('hidden-input');
     $('#apply-other-input').classList.add('hidden-input');
+    $('#city-add-row').classList.add('hidden-input');
+    $('#uni-add-row').classList.add('hidden-input');
     setVpd(null);
-    populateCityDropdowns();
-    populateUniversityDropdowns();
+    refreshFormCityDropdown();
+    refreshFormUniDropdown();
+    renderCityList();
+    renderUniList();
   }
 
   function setVpd(val) {
@@ -149,14 +294,16 @@
 
   function loadRecordIntoForm(record) {
     editingId = record.id;
-    $('#form-title').textContent = 'Edit Course';
+    $('#course-form-title').textContent = 'Edit Course';
     $('#btn-delete-form').style.display = '';
     $('#btn-save').textContent = 'Update Course';
 
-    populateCityDropdowns();
+    refreshFormCityDropdown();
     $('#form-city').value = record.city || '';
-    populateUniversityDropdowns(record.city);
-    $('#form-university').value = record.university || '';
+    $('#form-city').dispatchEvent(new Event('change'));
+    setTimeout(() => {
+      $('#form-university').value = record.university || '';
+    }, 0);
     $('#form-course').value = record.course || '';
     $('#form-requirements').value = record.requirements || '';
     $('#form-summer-start').value = record.summerStart || '';
@@ -181,14 +328,12 @@
     $$('.tab-content').forEach(c => c.classList.remove('active'));
     $('.tab-btn[data-tab="tab-form"]').classList.add('active');
     $('#tab-form').classList.add('active');
-    $('#tab-form').scrollIntoView({ behavior: 'smooth' });
+    document.querySelector('.course-form-card').scrollIntoView({ behavior: 'smooth' });
   }
 
-  function saveRecord() {
-    let city = $('#form-city').value;
-    if (city === '__new__') city = $('#new-city-input-text').value.trim();
-    let university = $('#form-university').value;
-    if (university === '__new__') university = $('#new-uni-input-text').value.trim();
+  function saveCourse() {
+    const city = $('#form-city').value;
+    const university = $('#form-university').value;
     const course = $('#form-course').value.trim();
 
     if (!city || !university || !course) {
@@ -217,25 +362,26 @@
     };
 
     if (editingId) {
-      const idx = data.findIndex(d => d.id === editingId);
-      if (idx !== -1) data[idx] = record;
+      const idx = courses.findIndex(d => d.id === editingId);
+      if (idx !== -1) courses[idx] = record;
     } else {
-      data.push(record);
+      courses.push(record);
     }
 
-    save();
+    saveAll();
     resetForm();
-    populateCityDropdowns();
     renderTable();
   }
 
   function deleteRecord(id) {
     if (!confirm('Delete this course record? This cannot be undone.')) return;
-    data = data.filter(d => d.id !== id);
-    save();
+    courses = courses.filter(d => d.id !== id);
+    saveAll();
     if (editingId === id) resetForm();
-    populateCityDropdowns();
-    populateFilterUniversities();
+    refreshFormCityDropdown();
+    refreshFilterUniDropdown();
+    renderCityList();
+    renderUniList();
     renderTable();
   }
 
@@ -258,7 +404,7 @@
   ];
 
   function getFilteredData() {
-    let filtered = [...data];
+    let filtered = [...courses];
     const fCity = $('#filter-city').value;
     const fUni = $('#filter-university').value;
     const fApply = $('#filter-apply').value;
@@ -364,7 +510,7 @@
       td.style.textAlign = 'center';
       td.style.padding = '40px';
       td.style.color = '#94a3b8';
-      td.textContent = data.length === 0 ? 'No courses added yet. Use the form to add your first course.' : 'No records match the current filters.';
+      td.textContent = courses.length === 0 ? 'No courses added yet. Use the form to add your first course.' : 'No records match the current filters.';
       tr.appendChild(td);
       tbody.appendChild(tr);
     } else {
@@ -407,18 +553,18 @@
       });
     }
 
-    $('#record-count').textContent = filtered.length === data.length
-      ? `${data.length} record${data.length !== 1 ? 's' : ''}`
-      : `${filtered.length} of ${data.length} records shown`;
+    $('#record-count').textContent = filtered.length === courses.length
+      ? `${courses.length} record${courses.length !== 1 ? 's' : ''}`
+      : `${filtered.length} of ${courses.length} records shown`;
 
-    populateFilterUniversities();
+    refreshFilterUniDropdown();
   }
 
   // ── Export / Import Excel ──
   function exportExcel() {
-    if (data.length === 0) { alert('No data to export.'); return; }
+    if (courses.length === 0) { alert('No data to export.'); return; }
     const cfLabels = allCustomLabels();
-    const rows = data.map(d => {
+    const rows = courses.map(d => {
       const row = {
         City: d.city, University: d.university, Course: d.course,
         Requirements: d.requirements,
@@ -494,12 +640,12 @@
         }).filter(d => d.city || d.university || d.course);
 
         const mode = confirm('Click OK to REPLACE all existing data with the imported file.\nClick Cancel to MERGE (add imported records to existing data).');
-        if (mode) data = imported;
-        else data = data.concat(imported);
+        if (mode) courses = imported;
+        else courses = courses.concat(imported);
 
-        save();
-        populateCityDropdowns();
-        populateFilterUniversities();
+        saveAll();
+        refreshFormCityDropdown();
+        refreshFilterUniDropdown();
         renderTable();
         resetForm();
         alert(`Imported ${imported.length} record(s) successfully.`);
@@ -512,8 +658,8 @@
 
   // ── Export / Import JSON ──
   function exportJSON() {
-    if (data.length === 0) { alert('No data to export.'); return; }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const payload = { cities, universities, courses };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `uni-portal-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -526,17 +672,37 @@
     reader.onload = e => {
       try {
         const parsed = JSON.parse(e.target.result);
-        if (!Array.isArray(parsed)) { alert('Invalid JSON: expected an array.'); return; }
-        const imported = parsed.map(d => ({ ...d, id: d.id || uid() }));
+        let importedCourses, importedCities, importedUnis;
+
+        if (Array.isArray(parsed)) {
+          importedCourses = parsed.map(d => ({ ...d, id: d.id || uid() }));
+          importedCities = [];
+          importedUnis = [];
+        } else if (parsed && typeof parsed === 'object') {
+          importedCourses = (Array.isArray(parsed.courses) ? parsed.courses : []).map(d => ({ ...d, id: d.id || uid() }));
+          importedCities = Array.isArray(parsed.cities) ? parsed.cities : [];
+          importedUnis = Array.isArray(parsed.universities) ? parsed.universities : [];
+        } else {
+          alert('Invalid JSON format.'); return;
+        }
+
         const mode = confirm('Click OK to REPLACE all existing data.\nClick Cancel to MERGE.');
-        if (mode) data = imported;
-        else data = data.concat(imported);
-        save();
-        populateCityDropdowns();
-        populateFilterUniversities();
+        if (mode) {
+          courses = importedCourses;
+          if (importedCities.length) cities = importedCities;
+          if (importedUnis.length) universities = importedUnis;
+        } else {
+          courses = courses.concat(importedCourses);
+          cities = cities.concat(importedCities.filter(ic => !cities.some(c => c.name === ic.name)));
+          universities = universities.concat(importedUnis.filter(iu => !universities.some(u => u.name === iu.name && u.city === iu.city)));
+        }
+
+        saveAll();
+        refreshFormCityDropdown();
+        refreshFilterUniDropdown();
         renderTable();
         resetForm();
-        alert(`Imported ${imported.length} record(s) from JSON.`);
+        alert(`Imported ${importedCourses.length} course(s) from JSON.`);
       } catch (err) {
         alert('Error importing JSON: ' + err.message);
       }
@@ -550,33 +716,36 @@
 
   // ── Init ──
   function init() {
-    load();
+    loadAll();
     initTabs();
-    populateCityDropdowns();
-    populateUniversityDropdowns();
+    refreshFormCityDropdown();
+    refreshFormUniDropdown();
+    renderCityList();
+    renderUniList();
     renderTable();
 
-    // City dropdown → show/hide new-city input, update university list
+    // City dropdown change → update university list + entity lists
     $('#form-city').addEventListener('change', function() {
-      if (this.value === '__new__') {
-        $('#new-city-input').classList.remove('hidden-input');
-        $('#new-city-input-text').focus();
-        populateUniversityDropdowns(null);
-      } else {
-        $('#new-city-input').classList.add('hidden-input');
-        populateUniversityDropdowns(this.value);
-      }
+      refreshFormUniDropdown(this.value);
+      renderUniList();
     });
 
-    // University dropdown → show/hide new-uni input
-    $('#form-university').addEventListener('change', function() {
-      if (this.value === '__new__') {
-        $('#new-uni-input').classList.remove('hidden-input');
-        $('#new-uni-input-text').focus();
-      } else {
-        $('#new-uni-input').classList.add('hidden-input');
-      }
+    // Show/hide city add row
+    $('#btn-show-add-city').addEventListener('click', () => {
+      $('#city-add-row').classList.toggle('hidden-input');
+      if (!$('#city-add-row').classList.contains('hidden-input')) $('#new-city-name').focus();
     });
+    $('#btn-save-city').addEventListener('click', saveCity);
+    $('#new-city-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveCity(); } });
+
+    // Show/hide uni add row
+    $('#btn-show-add-uni').addEventListener('click', () => {
+      if (!$('#form-city').value) { alert('Please select a city first.'); return; }
+      $('#uni-add-row').classList.toggle('hidden-input');
+      if (!$('#uni-add-row').classList.contains('hidden-input')) $('#new-uni-name').focus();
+    });
+    $('#btn-save-uni').addEventListener('click', saveUniversity);
+    $('#new-uni-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveUniversity(); } });
 
     // Apply method → show/hide "Other" input
     $('#form-apply').addEventListener('change', function() {
@@ -588,7 +757,7 @@
       }
     });
 
-    // VPD toggle buttons
+    // VPD toggle
     $$('.vpd-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const isActive = btn.classList.contains('active');
@@ -597,11 +766,11 @@
       });
     });
 
-    // Add custom field
+    // Custom fields
     $('#btn-add-cf').addEventListener('click', () => addCustomFieldRow());
 
-    // Save
-    $('#btn-save').addEventListener('click', saveRecord);
+    // Save course
+    $('#btn-save').addEventListener('click', saveCourse);
 
     // Clear form
     $('#btn-clear').addEventListener('click', resetForm);
@@ -623,15 +792,13 @@
     ['#filter-city', '#filter-university', '#filter-apply', '#filter-vpd'].forEach(sel => {
       $(sel).addEventListener('change', renderTable);
     });
-    $('#filter-city').addEventListener('change', () => { populateFilterUniversities(); renderTable(); });
+    $('#filter-city').addEventListener('change', () => { refreshFilterUniDropdown(); renderTable(); });
     $('#filter-search').addEventListener('input', renderTable);
 
-    // Date filters
     ['#filter-summer-start-from','#filter-summer-start-to','#filter-summer-end-from','#filter-summer-end-to',
      '#filter-winter-start-from','#filter-winter-start-to','#filter-winter-end-from','#filter-winter-end-to'
     ].forEach(sel => $(sel).addEventListener('change', renderTable));
 
-    // Clear filters
     $('#btn-clear-filters').addEventListener('click', () => {
       ['#filter-city','#filter-university','#filter-apply','#filter-vpd','#filter-search',
        '#filter-summer-start-from','#filter-summer-start-to','#filter-summer-end-from','#filter-summer-end-to',
@@ -640,7 +807,7 @@
       renderTable();
     });
 
-    if (data.length > 0) {
+    if (courses.length > 0) {
       $('#last-saved').textContent = 'Data loaded from browser storage';
     }
   }
