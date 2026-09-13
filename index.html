@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Germany University Research Portal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="header">
+    <h1>Germany University Research Portal</h1>
+    <span class="header-meta" id="last-saved">No data yet</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-form">Add / Edit</button>
+    <button class="tab-btn" data-tab="tab-view">View Data</button>
+  </div>
+
+  <!-- ═══ ADD / EDIT TAB ═══ -->
+  <div id="tab-form" class="tab-content active">
+
+    <div class="toolbar">
+      <button id="btn-export-xlsx">Export Excel</button>
+      <button id="btn-import-xlsx">Import Excel</button>
+      <button id="btn-export-json">Export JSON</button>
+      <button id="btn-import-json">Import JSON</button>
+      <input type="file" id="file-xlsx" class="hidden-input" accept=".xlsx,.xls">
+      <input type="file" id="file-json" class="hidden-input" accept=".json">
+    </div>
+
+    <div class="form-card">
+      <h2 id="form-title">Add New Course</h2>
+      <form id="course-form" onsubmit="return false">
+        <div class="form-grid">
+
+          <!-- City -->
+          <div class="form-group">
+            <label>City *</label>
+            <select id="form-city"><option value="">-- Select or Add New --</option></select>
+            <div id="new-city-input" class="hidden-input" style="margin-top:6px">
+              <input type="text" id="new-city-input-text" placeholder="Enter new city name">
+            </div>
+          </div>
+
+          <!-- University -->
+          <div class="form-group">
+            <label>University *</label>
+            <select id="form-university"><option value="">-- Select or Add New --</option></select>
+            <div id="new-uni-input" class="hidden-input" style="margin-top:6px">
+              <input type="text" id="new-uni-input-text" placeholder="Enter new university name">
+            </div>
+          </div>
+
+          <!-- Course -->
+          <div class="form-group full">
+            <label>Course Name *</label>
+            <input type="text" id="form-course" placeholder="e.g. M.Sc. Computer Science">
+          </div>
+
+          <!-- Requirements -->
+          <div class="form-group full">
+            <label>Course Requirements</label>
+            <textarea id="form-requirements" rows="3" placeholder="e.g. Bachelor in CS, 2.5 GPA..."></textarea>
+          </div>
+
+          <!-- Summer intake -->
+          <div class="form-group">
+            <label>Summer Intake — Start</label>
+            <input type="date" id="form-summer-start">
+          </div>
+          <div class="form-group">
+            <label>Summer Intake — End</label>
+            <input type="date" id="form-summer-end">
+          </div>
+
+          <!-- Winter intake -->
+          <div class="form-group">
+            <label>Winter Intake — Start</label>
+            <input type="date" id="form-winter-start">
+          </div>
+          <div class="form-group">
+            <label>Winter Intake — End</label>
+            <input type="date" id="form-winter-end">
+          </div>
+
+          <!-- IELTS -->
+          <div class="form-group">
+            <label>IELTS / Language Requirement</label>
+            <input type="text" id="form-ielts" placeholder="e.g. IELTS 6.5 or German B2">
+          </div>
+
+          <!-- Tuition -->
+          <div class="form-group">
+            <label>Tuition / Fees & Living Cost</label>
+            <input type="text" id="form-tuition" placeholder="e.g. €500/sem + ~€900/mo living">
+          </div>
+
+          <!-- Apply method -->
+          <div class="form-group">
+            <label>Apply Method</label>
+            <select id="form-apply">
+              <option value="">-- Select --</option>
+              <option value="Uni-Assist">Uni-Assist</option>
+              <option value="University website">University website</option>
+              <option value="Other">Other</option>
+            </select>
+            <div id="apply-other-input" class="hidden-input" style="margin-top:6px">
+              <input type="text" id="form-apply-other" placeholder="Specify other method">
+            </div>
+          </div>
+
+          <!-- VPD -->
+          <div class="form-group">
+            <label>VPD Required</label>
+            <div class="toggle-group">
+              <button type="button" class="vpd-btn" data-val="yes">Yes</button>
+              <button type="button" class="vpd-btn" data-val="no">No</button>
+            </div>
+          </div>
+
+          <!-- URL -->
+          <div class="form-group full">
+            <label>URL</label>
+            <input type="url" id="form-url" placeholder="https://...">
+          </div>
+
+          <!-- Comments -->
+          <div class="form-group full">
+            <label>Comments</label>
+            <textarea id="form-comments" rows="3" placeholder="Any notes..."></textarea>
+          </div>
+        </div>
+
+        <!-- Custom fields -->
+        <div class="custom-fields-section">
+          <h3>Custom Fields</h3>
+          <div id="custom-fields-container"></div>
+          <button type="button" id="btn-add-cf" class="add-cf-btn">+ Add Custom Field</button>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" id="btn-save" class="btn btn-primary">Save Course</button>
+          <button type="button" id="btn-clear" class="btn btn-secondary">Clear Form</button>
+          <button type="button" id="btn-delete-form" class="btn btn-danger" style="display:none">Delete Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ VIEW DATA TAB ═══ -->
+  <div id="tab-view" class="tab-content">
+
+    <div class="toolbar">
+      <button id="btn-export-xlsx-2" onclick="document.getElementById('btn-export-xlsx').click()">Export Excel</button>
+      <button id="btn-import-xlsx-2" onclick="document.getElementById('btn-import-xlsx').click()">Import Excel</button>
+      <button id="btn-export-json-2" onclick="document.getElementById('btn-export-json').click()">Export JSON</button>
+      <button id="btn-import-json-2" onclick="document.getElementById('btn-import-json').click()">Import JSON</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <h3>Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label>City</label>
+          <select id="filter-city"><option value="">All Cities</option></select>
+        </div>
+        <div class="filter-group">
+          <label>University</label>
+          <select id="filter-university"><option value="">All Universities</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Apply Method</label>
+          <select id="filter-apply">
+            <option value="">All</option>
+            <option value="Uni-Assist">Uni-Assist</option>
+            <option value="University website">University website</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>VPD</label>
+          <select id="filter-vpd">
+            <option value="">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="filter-search" placeholder="Search courses...">
+        </div>
+        <button class="clear-filters" id="btn-clear-filters">Clear All</button>
+      </div>
+
+      <!-- Date range filters -->
+      <div class="date-filters-row">
+        <div class="date-filter-pair">
+          <label>Summer Start</label>
+          <input type="date" id="filter-summer-start-from" title="From">
+          <span>–</span>
+          <input type="date" id="filter-summer-start-to" title="To">
+        </div>
+        <div class="date-filter-pair">
+          <label>Summer End</label>
+          <input type="date" id="filter-summer-end-from" title="From">
+          <span>–</span>
+          <input type="date" id="filter-summer-end-to" title="To">
+        </div>
+        <div class="date-filter-pair">
+          <label>Winter Start</label>
+          <input type="date" id="filter-winter-start-from" title="From">
+          <span>–</span>
+          <input type="date" id="filter-winter-start-to" title="To">
+        </div>
+        <div class="date-filter-pair">
+          <label>Winter End</label>
+          <input type="date" id="filter-winter-end-from" title="From">
+          <span>–</span>
+          <input type="date" id="filter-winter-end-to" title="To">
+        </div>
+      </div>
+    </div>
+
+    <div class="record-count" id="record-count">0 records</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead id="data-thead"></thead>
+        <tbody id="data-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
