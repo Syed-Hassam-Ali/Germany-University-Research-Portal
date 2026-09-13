@@ -10,6 +10,7 @@ A personal research portal for tracking German universities and courses you're c
 
 - **Hierarchical data model** — City → University → Course, with each level independently saveable
 - **10 pre-loaded German tech cities** — Munich, Berlin, Hamburg, Frankfurt, Stuttgart, Düsseldorf, Cologne, Karlsruhe, Nuremberg, Dresden
+- **City priority levels** — Color-coded chips (High/Medium/Low) to distinguish top-priority cities at a glance
 - **Stepped form** — Add cities, universities, and courses independently (no need to fill the entire form just to save a city)
 - **Spreadsheet-style table view** — Sortable columns, filters (city, university, apply method, VPD, free-text search, date ranges), record counts
 - **Custom fields** — Add any number of ad-hoc label/value pairs per course; they appear as extra columns in the table and Excel exports
@@ -63,8 +64,9 @@ The form is split into three stepped cards:
 
 **Step 1: City**
 - Select an existing city from the dropdown, or click **"+ Add New City"** to create one
+- Assign a priority level (High, Medium, or Low) — cities are color-coded: red for High, amber for Medium, gray for Low
 - Click **"Save City"** — no other fields needed
-- City chips show at a glance how many universities and courses each city has
+- City chips show at a glance how many universities and courses each city has, sorted by priority
 
 **Step 2: University**
 - Select a city first, then pick a university or add a new one

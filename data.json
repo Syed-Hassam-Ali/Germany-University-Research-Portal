@@ -2,43 +2,53 @@
   "cities": [
     {
       "id": "259d264e-591f-4378-8373-9b86c99e08b6",
-      "name": "Munich (München)"
+      "name": "Munich (München)",
+      "priority": "high"
     },
     {
       "id": "ca8cb5ea-42a9-4009-8482-b444c3e7baab",
-      "name": "Berlin"
+      "name": "Berlin",
+      "priority": "high"
     },
     {
       "id": "8e663cd9-7e82-4a19-b485-59430e89259d",
-      "name": "Hamburg"
+      "name": "Hamburg",
+      "priority": "high"
     },
     {
       "id": "a9751616-1392-4e33-ab4e-3d68aa99be26",
-      "name": "Frankfurt am Main"
+      "name": "Frankfurt am Main",
+      "priority": "high"
     },
     {
       "id": "46d1cf43-d14e-48ba-b003-988826175db5",
-      "name": "Stuttgart"
+      "name": "Stuttgart",
+      "priority": "high"
     },
     {
       "id": "978a4b95-037a-44a2-832e-ae8716243ae8",
-      "name": "Düsseldorf"
+      "name": "Düsseldorf",
+      "priority": "high"
     },
     {
       "id": "f3573554-00dc-4884-870a-9fa9fcfcca6a",
-      "name": "Cologne (Köln)"
+      "name": "Cologne (Köln)",
+      "priority": "medium"
     },
     {
       "id": "4ed540d7-f9ed-4376-8ed3-77cb5e23e360",
-      "name": "Karlsruhe"
+      "name": "Karlsruhe",
+      "priority": "medium"
     },
     {
       "id": "dc228e59-fa72-492c-a8a1-2845e1bafa5f",
-      "name": "Nuremberg (Nürnberg)"
+      "name": "Nuremberg (Nürnberg)",
+      "priority": "medium"
     },
     {
       "id": "2d6bbfd9-b116-4bba-a70e-efcaa413aced",
-      "name": "Dresden"
+      "name": "Dresden",
+      "priority": "medium"
     }
   ],
   "universities": [

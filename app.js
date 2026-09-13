@@ -4,16 +4,16 @@
   const STORAGE_UNIS = 'uni_portal_universities';
 
   const DEFAULT_CITIES = [
-    'Munich (München)',
-    'Berlin',
-    'Hamburg',
-    'Frankfurt am Main',
-    'Stuttgart',
-    'Düsseldorf',
-    'Cologne (Köln)',
-    'Karlsruhe',
-    'Nuremberg (Nürnberg)',
-    'Dresden'
+    { name: 'Munich (München)', priority: 'high' },
+    { name: 'Berlin', priority: 'high' },
+    { name: 'Hamburg', priority: 'high' },
+    { name: 'Frankfurt am Main', priority: 'high' },
+    { name: 'Stuttgart', priority: 'high' },
+    { name: 'Düsseldorf', priority: 'high' },
+    { name: 'Cologne (Köln)', priority: 'medium' },
+    { name: 'Karlsruhe', priority: 'medium' },
+    { name: 'Nuremberg (Nürnberg)', priority: 'medium' },
+    { name: 'Dresden', priority: 'medium' }
   ];
 
   let courses = [];
@@ -89,8 +89,10 @@
           saveToLocalStorage();
           updateStorageBadge(true);
           if (cities.length === 0) {
-            cities = DEFAULT_CITIES.map(name => ({ id: uid(), name }));
+            cities = DEFAULT_CITIES.map(c => ({ id: uid(), name: c.name, priority: c.priority }));
             saveAll();
+          } else {
+            migrateCityPriorities();
           }
           return;
         }
@@ -117,9 +119,23 @@
     } catch { universities = []; }
 
     if (cities.length === 0) {
-      cities = DEFAULT_CITIES.map(name => ({ id: uid(), name }));
+      cities = DEFAULT_CITIES.map(c => ({ id: uid(), name: c.name, priority: c.priority }));
       saveToLocalStorage();
+    } else {
+      migrateCityPriorities();
     }
+  }
+
+  function migrateCityPriorities() {
+    let changed = false;
+    cities.forEach(city => {
+      if (!city.priority) {
+        const defaultCity = DEFAULT_CITIES.find(dc => dc.name === city.name);
+        city.priority = defaultCity ? defaultCity.priority : 'medium';
+        changed = true;
+      }
+    });
+    if (changed) saveToLocalStorage();
   }
 
   // ── Derived lists ──
@@ -198,10 +214,12 @@
       alert('This city already exists.');
       return;
     }
-    cities.push({ id: uid(), name });
+    const priority = $('#new-city-priority').value;
+    cities.push({ id: uid(), name, priority });
     saveAll();
     refreshFormCityDropdown();
     $('#new-city-name').value = '';
+    $('#new-city-priority').value = 'medium';
     $('#form-city').value = name;
     $('#form-city').dispatchEvent(new Event('change'));
     $('#city-add-row').classList.add('hidden-input');
@@ -260,17 +278,28 @@
     renderTable();
   }
 
+  const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+  const PRIORITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' };
+
   function renderCityList() {
     const container = $('#city-list');
     container.innerHTML = '';
-    const names = allCityNames();
-    if (names.length === 0) { container.innerHTML = '<span class="list-empty">No cities yet</span>'; return; }
-    names.forEach(name => {
+    const sortedCities = [...cities].sort((a, b) => {
+      const pa = PRIORITY_ORDER[a.priority] ?? 1;
+      const pb = PRIORITY_ORDER[b.priority] ?? 1;
+      if (pa !== pb) return pa - pb;
+      return a.name.localeCompare(b.name);
+    });
+    if (sortedCities.length === 0) { container.innerHTML = '<span class="list-empty">No cities yet</span>'; return; }
+    sortedCities.forEach(city => {
+      const name = city.name;
+      const priority = city.priority || 'medium';
       const uniCount = allUnisForCity(name).length;
       const courseCount = courses.filter(c => c.city === name).length;
       const row = document.createElement('div');
-      row.className = 'entity-chip';
+      row.className = `entity-chip priority-${priority}`;
       row.innerHTML = `
+        <span class="chip-priority-dot" title="${PRIORITY_LABELS[priority]} priority"></span>
         <span class="chip-name">${escHtml(name)}</span>
         <span class="chip-count">${uniCount} uni · ${courseCount} course${courseCount !== 1 ? 's' : ''}</span>
         <button type="button" class="chip-del" title="Delete city">&times;</button>

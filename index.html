@@ -47,11 +47,23 @@
 
       <div id="city-add-row" class="inline-add-row hidden-input">
         <input type="text" id="new-city-name" placeholder="Enter new city name">
+        <select id="new-city-priority" class="priority-select">
+          <option value="high">High Priority</option>
+          <option value="medium" selected>Medium Priority</option>
+          <option value="low">Low Priority</option>
+        </select>
         <button type="button" id="btn-save-city" class="btn btn-primary btn-sm">Save City</button>
       </div>
 
       <div class="entity-list-wrap">
-        <div class="entity-list-label">Saved cities (click to select):</div>
+        <div class="entity-list-header">
+          <span class="entity-list-label">Saved cities (click to select):</span>
+          <div class="priority-legend">
+            <span class="legend-item"><span class="legend-dot dot-high"></span>High</span>
+            <span class="legend-item"><span class="legend-dot dot-medium"></span>Medium</span>
+            <span class="legend-item"><span class="legend-dot dot-low"></span>Low</span>
+          </div>
+        </div>
         <div id="city-list" class="entity-list"></div>
       </div>
     </div>
