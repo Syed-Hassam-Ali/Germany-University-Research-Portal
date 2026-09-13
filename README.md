@@ -6,20 +6,6 @@ A personal research portal for tracking German universities and courses you're c
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![No Frameworks](https://img.shields.io/badge/Frameworks-None-orange)
 
-## Screenshots
-
-### Main View — City Management
-![Main View](screenshots/01-main-view.png)
-
-### City & University Selection
-![City and University](screenshots/02-city-university.png)
-
-### Course Details Form
-![Course Form](screenshots/03-course-form.png)
-
-### Table View with Filters
-![Table View](screenshots/04-table-view.png)
-
 ## Features
 
 - **Hierarchical data model** — City → University → Course, with each level independently saveable
@@ -167,6 +153,21 @@ university-portal/
 - **Any modern browser** (Chrome, Firefox, Edge, Safari)
 - **Node.js 18+** (only needed for file-based storage mode)
 - No npm install, no build tools, no dependencies to manage
+
+## Screenshots
+
+### Main View — City Management
+![Main View](screenshots/01-main-view.png)
+
+### City & University Selection
+![City and University](screenshots/02-city-university.png)
+
+### Course Details Form
+![Course Form](screenshots/03-course-form.png)
+
+### Table View with Filters
+![Table View](screenshots/04-table-view.png)
+
 
 ## License
 
